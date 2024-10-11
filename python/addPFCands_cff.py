@@ -1,14 +1,15 @@
 import FWCore.ParameterSet.Config as cms
 from  PhysicsTools.NanoAOD.common_cff import *
 
-def addPFCands(process, runOnMC=False, allPF = False, onlyAK4=False, onlyAK8=False):
+def addPFCands(process, runOnMC=False, allPF= False, onlyAK4=False, onlyAK8=False, Haa4b=False):
     process.customizedPFCandsTask = cms.Task( )
     process.schedule.associate(process.customizedPFCandsTask)
 
     process.finalJetsAK8Constituents = cms.EDProducer("PatJetConstituentPtrSelector",
-                                            src = cms.InputTag("finalJetsAK8"),
+                                            src = cms.InputTag("slimmedJetsAK8Sel" if Haa4b else "finalJetsAK8"),
                                             cut = cms.string("")
                                             )
+
     process.finalJetsAK4Constituents = cms.EDProducer("PatJetConstituentPtrSelector",
                                             src = cms.InputTag("finalJets"),
                                             cut = cms.string("")
@@ -54,7 +55,7 @@ def addPFCands(process, runOnMC=False, allPF = False, onlyAK4=False, onlyAK8=Fal
                                     )
     process.customAK8ConstituentsTable = cms.EDProducer("PatJetConstituentTableProducer",
                                                         candidates = candInput,
-                                                        jets = cms.InputTag("finalJetsAK8"),
+                                                        jets = cms.InputTag("slimmedJetsAK8Sel" if Haa4b else "finalJetsAK8"),
                                                         jet_radius = cms.double(0.8),
                                                         name = cms.string("FatJetPFCands"),
                                                         idx_name = cms.string("pFCandsIdx"),
@@ -75,7 +76,8 @@ def addPFCands(process, runOnMC=False, allPF = False, onlyAK4=False, onlyAK8=Fal
         process.customizedPFCandsTask.add(process.finalJetsConstituents)
     process.customizedPFCandsTask.add(process.customConstituentsExtTable)
     process.customizedPFCandsTask.add(process.customAK8ConstituentsTable)
-    process.customizedPFCandsTask.add(process.customAK4ConstituentsTable)
+    if not Haa4b:
+        process.customizedPFCandsTask.add(process.customAK4ConstituentsTable)
     
     if runOnMC:
 
@@ -129,12 +131,14 @@ def addPFCands(process, runOnMC=False, allPF = False, onlyAK4=False, onlyAK8=Fal
                                                          idx_name = cms.string("pFCandsIdx"),
                                                          idx_nameSV = cms.string("sVIdx"),
                                                          readBtag = cms.bool(False))
-        process.customizedPFCandsTask.add(process.genJetsAK4Constituents) #Note: For gen need to add jets to the process to keep pt cuts.
+        if not Haa4b:
+            process.customizedPFCandsTask.add(process.genJetsAK4Constituents) #Note: For gen need to add jets to the process to keep pt cuts.
         process.customizedPFCandsTask.add(process.genJetsAK8Constituents)
         if not allPF:
             process.customizedPFCandsTask.add(process.genJetsConstituents)
-        process.customizedPFCandsTask.add(process.genJetsParticleTable)
-        process.customizedPFCandsTask.add(process.genAK8ConstituentsTable)
-        process.customizedPFCandsTask.add(process.genAK4ConstituentsTable)
+        if not Haa4b:
+            process.customizedPFCandsTask.add(process.genJetsParticleTable)
+            process.customizedPFCandsTask.add(process.genAK8ConstituentsTable)
+            process.customizedPFCandsTask.add(process.genAK4ConstituentsTable)
         
     return process

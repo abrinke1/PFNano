@@ -51,6 +51,7 @@ private:
   const std::string idx_name_;
   const std::string idx_nameSV_;
   const bool readBtag_;
+  const bool skimFatJet_;
   const double jet_radius_;
 
   edm::EDGetTokenT<edm::View<T>> jet_token_;
@@ -77,6 +78,7 @@ JetConstituentTableProducer<T>::JetConstituentTableProducer(const edm::Parameter
       idx_name_(iConfig.getParameter<std::string>("idx_name")),
       idx_nameSV_(iConfig.getParameter<std::string>("idx_nameSV")),
       readBtag_(iConfig.getParameter<bool>("readBtag")),
+      skimFatJet_(iConfig.getParameter<bool>("skimFatJet")),
       jet_radius_(iConfig.getParameter<double>("jet_radius")),
       jet_token_(consumes<edm::View<T>>(iConfig.getParameter<edm::InputTag>("jets"))),
       vtx_token_(consumes<VertexCollection>(iConfig.getParameter<edm::InputTag>("vertices"))),
@@ -214,6 +216,10 @@ void JetConstituentTableProducer<T>::produce(edm::Event &iEvent, const edm::Even
     }  // end jet loop
   }
 
+  if ((skimFatJet_ ==  true) && (jets->size() < 1)) {
+    return;
+  }
+
   auto candTable = std::make_unique<nanoaod::FlatTable>(outCands->size(), name_, false);
   // We fill from here only stuff that cannot be created with the SimpleFlatTableProducer
   candTable->addColumn<int>(idx_name_, pfcandIdx, "Index in the candidate list", nanoaod::FlatTable::IntColumn);
@@ -229,7 +235,7 @@ void JetConstituentTableProducer<T>::produce(edm::Event &iEvent, const edm::Even
   }
   iEvent.put(std::move(candTable), name_);
 
-   // SV table
+  // SV table
   auto svTable = std::make_unique<nanoaod::FlatTable>(outSVs->size(), nameSV_, false);
   // We fill from here only stuff that cannot be created with the SimpleFlatTnameableProducer
   svTable->addColumn<int>("jetIdx", jetIdx_sv, "Index of the parent jet", nanoaod::FlatTable::IntColumn);
@@ -265,6 +271,7 @@ void JetConstituentTableProducer<T>::fillDescriptions(edm::ConfigurationDescript
   desc.add<std::string>("idx_nameSV", "svIdx");
   desc.add<double>("jet_radius", true);
   desc.add<bool>("readBtag", true);
+  desc.add<bool>("skimFatJet", false);
   desc.add<edm::InputTag>("jets", edm::InputTag("slimmedJetsAK8"));
   desc.add<edm::InputTag>("vertices", edm::InputTag("offlineSlimmedPrimaryVertices"));
   desc.add<edm::InputTag>("candidates", edm::InputTag("packedPFCandidates"));

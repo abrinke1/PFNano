@@ -3,6 +3,14 @@ from PhysicsTools.PFNano.addPFCands_cff import addPFCands
 from PhysicsTools.PFNano.addBTV import add_BTV
 from PhysicsTools.NanoAOD.common_cff import Var
 
+## Customized for Haa4b, based on PFnano_customizeMC below
+def PFnano_customizeMC_Haa4b(process, skimFatJet=False):
+    ## addPFCands(process, runOnMC=False, allPF=False, onlyAK4=False, onlyAK8=False, Haa4b=False)
+    addPFCands(process, True, False, False, True, True)
+    process.customAK8ConstituentsTable.skimFatJet = cms.bool(skimFatJet)
+    process.NANOAODSIMoutput.fakeNameForCrab = cms.untracked.bool(True)  # needed for crab publication
+    return process
+
 # keepInputs can take DeepCSV, DeepJet and DDX (any combination, or use empty placeholder list if no inputs are required)
 def PFnano_customizeMC(process):
     addPFCands(process, True)
