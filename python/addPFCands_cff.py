@@ -6,7 +6,7 @@ def addPFCands(process, runOnMC=False, allPF= False, onlyAK4=False, onlyAK8=Fals
     process.schedule.associate(process.customizedPFCandsTask)
 
     process.finalJetsAK8Constituents = cms.EDProducer("PatJetConstituentPtrSelector",
-                                            src = cms.InputTag("slimmedJetsAK8Sel" if Haa4b else "finalJetsAK8"),
+                                            src = cms.InputTag("slimmedJetsAK8Cand" if Haa4b else "finalJetsAK8"),
                                             cut = cms.string("")
                                             )
 
@@ -55,7 +55,7 @@ def addPFCands(process, runOnMC=False, allPF= False, onlyAK4=False, onlyAK8=Fals
                                     )
     process.customAK8ConstituentsTable = cms.EDProducer("PatJetConstituentTableProducer",
                                                         candidates = candInput,
-                                                        jets = cms.InputTag("slimmedJetsAK8Sel" if Haa4b else "finalJetsAK8"),
+                                                        jets = cms.InputTag("slimmedJetsAK8Cand" if Haa4b else "finalJetsAK8"),
                                                         jet_radius = cms.double(0.8),
                                                         name = cms.string("FatJetPFCands"),
                                                         idx_name = cms.string("pFCandsIdx"),
@@ -74,6 +74,7 @@ def addPFCands(process, runOnMC=False, allPF= False, onlyAK4=False, onlyAK8=Fals
                                                         )
     if not allPF:
         process.customizedPFCandsTask.add(process.finalJetsConstituents)
+    ## if not Haa4b: ## If we can put variables into customAK8ConstituentsTable, can drop
     process.customizedPFCandsTask.add(process.customConstituentsExtTable)
     process.customizedPFCandsTask.add(process.customAK8ConstituentsTable)
     if not Haa4b:
@@ -133,8 +134,8 @@ def addPFCands(process, runOnMC=False, allPF= False, onlyAK4=False, onlyAK8=Fals
                                                          readBtag = cms.bool(False))
         if not Haa4b:
             process.customizedPFCandsTask.add(process.genJetsAK4Constituents) #Note: For gen need to add jets to the process to keep pt cuts.
-        process.customizedPFCandsTask.add(process.genJetsAK8Constituents)
-        if not allPF:
+            process.customizedPFCandsTask.add(process.genJetsAK8Constituents)
+        if not allPF and not Haa4b:
             process.customizedPFCandsTask.add(process.genJetsConstituents)
         if not Haa4b:
             process.customizedPFCandsTask.add(process.genJetsParticleTable)
